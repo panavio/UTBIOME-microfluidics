@@ -1,0 +1,11 @@
+# python code for reconstructing image/video file from byte array
+
+output_file_path = 'reconstructed_video.mp4'
+
+with open('test_file.bin', 'rb') as input_file:
+  byte_array = input_file.read()
+
+with open(output_file_path, 'wb') as output_file:
+  output_file.write(byte_array)
+
+# need socket part between raspberry pi (linux) and laptop
