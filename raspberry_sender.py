@@ -2,26 +2,26 @@ import socket
 import struct
 import os
 import time
+import shutil
 
 # Socket documentation https://docs.python.org/3/library/socket.html
 # Struct documentation https://docs.python.org/3/library/struct.html 
 # OS documentation https://docs.python.org/3/library/os.html
-# For complete transparency, AI assisted in making this code (especially in understanding sockets and libraries used)
-
-''' This code sends a byte array file to the computer, some vals need to be changed (specifically HOST)'''
-# next steps could be automating the reconstructing images part because that code is not automated, this will make it so the entire process of taking an image which is stored in a folder is automatically sent to laptop!
-
+# For complete transparency, AI assisted in making this code
 
 HOST = "192.168.7.2" # This is a placeholder value needs to be the computers IP
 PORT = 5001
-WATCH_FOLDER = "File Sender" # Adjust this to whatever name we give the folder for automatic send on the Pi
+WATCH_FOLDER = "File_Sender" # Adjust this to whatever name we give the folder for automatic send on the Pi
+SENT_FOLDER = "Sent_Files"
+
+os.makedirs(SENT_FOLDER, exist_ok=True)
 
 sent_files = set()
 
 def send_file(filepath):
 
     filename = os.path.basename(filepath)
-    filesize = os.path.getsize(filepath)
+    filesize = os.path.getsize(filepath)    
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
@@ -42,6 +42,7 @@ def send_file(filepath):
                 s.sendall(data)
     
     print("Sent:", filename)
+    shutil.move(filepath, os.path.join(SENT_FOLDER, filename))
 
 os.makedirs(WATCH_FOLDER, exist_ok=True)
 
