@@ -1,4 +1,4 @@
-# script for raspberry to receive results
+# script for raspberry to receive results 
 # do we need this or is it ok if it just gives results on computer?
 # Might be unnecessary
 
