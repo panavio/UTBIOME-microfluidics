@@ -2,18 +2,16 @@
 
 import cv2
 import socket
-import YOLO
-import ultralytics
-
+from ultralytics import YOLO
 
 model = YOLO("model.pt") # name of model
 
 # Need to open RTSP stream from Pi
 sock = socket.socket()
-sock.connect("192.168.1.20", 5000)#((IP of Rpi, port number))
+sock.connect(("192.168.1.20", 5000))#((IP of Rpi, port number))
 
 
-cap = cv2.VideoCapture("rtsp://192.168.1.20/stream") #(IP of Pi/stream))
+cap = cv2.VideoCapture("rtsp://192.168.1.20:8554/stream") #(IP of Pi/stream))
     
 while True:
     ret, frame = cap.read()
@@ -40,7 +38,7 @@ while True:
 
     #show video
     annotated_frame = results[0].plot()
-    cv2.imshow("Video", frame)
+    cv2.imshow("Video", annotated_frame)
 
     if cv2.waitKey(1) == 27: # this continue to play images every 1ms refresh and stops if ESC key is pressed
         break
