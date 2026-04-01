@@ -1,0 +1,15 @@
+# RPi starts
+#    ↓
+# Camera starts recording
+#    ↓
+# RTSP stream!
+#    ↓
+# Computer automatically connects
+#    ↓
+# Detection
+#    ↓
+# Send results back
+#    ↓
+# Some action (log / alert / display on a dashboard?)
+
+# How RTSP works: rpi will publish video as it is captured, computer "subscribes" to it
