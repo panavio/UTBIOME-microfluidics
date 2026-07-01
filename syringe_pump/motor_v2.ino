@@ -1,41 +1,61 @@
-// Arduino Digital Pins
+// Hardware pins
 const int dirPin = 2;
 const int stepPin = 3;
 
-// Change flowrate
-// this delay is in microseconds (us) 
-// Lower number = faster motor = higher flow rate.
-// Higher number = slower motor = lower flow rate.
+// Adjustable parameters
+const float targetFlowRate_mL_hr = 0.01; 
+const float syringeID_mm = 4.69; // Default for 1mL syringe
+const float leadPitch_mm = 8.0; 
+const float stepsPerRev = 3200.0; // 200 steps * 1/16 microstepping
 
-int speedDelay = 200; 
-
-/* Some Math (Updated for 1/16 Microstepping)
-Nema 17 takes 3200 steps to complete one full revolution (1/16 microsteps).
-We have an 8mm lead, one full revolution of the motor moves the nut exactly 8.0 mm forward.
-So, Linear Resolution: 8.0 mm / 3200 steps = 0.0025 mm per step.
-=> Every single time the stepMotor() function runs one loop, the syringe plunger is pushed exactly 0.0025 mm.
-*/
+// Timing variables
+unsigned long stepIntervalMicros = 0;
+unsigned long previousMicros = 0;
+int stepState = LOW;
 
 void setup() {
+  Serial.begin(9600);
   pinMode(dirPin, OUTPUT);
   pinMode(stepPin, OUTPUT);
   
-  // set direction once so it spins continuously in one direction
-  digitalWrite(dirPin, HIGH);
-}
-
-// Function to handle the stepping math
-void stepMotor(int numSteps, int pulseDelay) {
-  for(int x = 0; x < numSteps; x++) {
-    digitalWrite(stepPin, HIGH);
-    delayMicroseconds(pulseDelay); // wait
-    digitalWrite(stepPin, LOW);
-    delayMicroseconds(pulseDelay); // wait
+  // Set initial spin direction
+  digitalWrite(dirPin, HIGH); 
+  
+  // Convert flow rate to mm^3 / sec
+  float flowRate_mm3_sec = (targetFlowRate_mL_hr * 1000.0) / 3600.0;
+  
+  // Calc cross-sectional area
+  float radius = syringeID_mm / 2.0;
+  float area_mm2 = PI * sq(radius);
+  
+  // Calc required linear speed
+  float linearSpeed_mm_sec = flowRate_mm3_sec / area_mm2;
+  
+  // Calc steps per second
+  float mmPerStep = leadPitch_mm / stepsPerRev; 
+  float stepsPerSec = linearSpeed_mm_sec / mmPerStep;
+  
+  // Calc toggle interval
+  if (stepsPerSec > 0) {
+    stepIntervalMicros = 1000000.0 / (stepsPerSec * 2.0); 
   }
+
+  // Print diagnostics
+  Serial.print("Target Flow Rate (mL/hr): "); 
+  Serial.println(targetFlowRate_mL_hr, 4);
+  Serial.print("Pulse Interval (us): "); 
+  Serial.println(stepIntervalMicros);
 }
 
 void loop() {
-  // test speed smoothly and continuously
-  // Moves 3200 steps (1 full revolution) at the speed defined by speedDelay
-  stepMotor(3200, speedDelay); 
+  unsigned long currentMicros = micros();
+
+  // Check if time to step
+  if (currentMicros - previousMicros >= stepIntervalMicros) {
+    previousMicros = currentMicros;
+    
+    // Toggle step pin
+    stepState = !stepState;
+    digitalWrite(stepPin, stepState);
+  }
 }
